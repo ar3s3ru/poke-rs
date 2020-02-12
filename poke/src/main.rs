@@ -8,9 +8,8 @@ use poke_domain::pokemon::{Element, Pokemon, Stats, Type};
 #[tokio::main]
 async fn main() {
     env_logger::init();
-    let app = App::from_args();
 
-    match app.subcommand {
+    match App::from_args().subcommand {
         Subcommand::Web { port } => {
             let logger = warp::log("poke");
 
