@@ -17,7 +17,7 @@ async fn main() {
             let repository = poke_memory::InMemoryRepository::from(in_mem_pokedex());
             let routes = poke_http::api(repository).with(logger);
 
-            warp::serve(routes).run(([127, 0, 0, 1], port)).await;
+            warp::serve(routes).run(([0, 0, 0, 0], port)).await;
         }
     }
 }
