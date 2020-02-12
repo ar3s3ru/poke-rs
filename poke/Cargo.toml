@@ -8,7 +8,11 @@ edition = "2018"
 
 [dependencies]
 env_logger = "0.7"
+structopt = "0.3"
 tokio = { version = "0.2", features = ["macros"] }
 warp = "0.2"
 
+poke-cli = { path = "../poke-cli" }
+poke-domain = { path = "../poke-domain" }
 poke-http = { path = "../poke-http" }
+poke-memory = { path = "../poke-memory" }

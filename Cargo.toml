@@ -3,5 +3,6 @@ members = [
     "poke",
     "poke-cli",
     "poke-domain",
-    "poke-http"
+    "poke-http",
+    "poke-memory"
 ]
