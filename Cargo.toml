@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "poke",
+    "poke-cli",
+    "poke-domain",
+    "poke-http"
+]
