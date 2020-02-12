@@ -13,7 +13,8 @@ async fn main() {
         Subcommand::Web { port } => {
             let logger = warp::log("poke");
 
-            let repository = poke_memory::InMemoryRepository::from(in_mem_pokedex());
+            // let repository = poke_memory::InMemoryRepository::from(in_mem_pokedex());
+            let repository = poke_pokeapi::repository::PokemonRepository::default();
             let routes = poke_http::api(repository).with(logger);
 
             warp::serve(routes).run(([0, 0, 0, 0], port)).await;

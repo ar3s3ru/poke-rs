@@ -16,3 +16,4 @@ poke-cli = { path = "../poke-cli" }
 poke-domain = { path = "../poke-domain" }
 poke-http = { path = "../poke-http" }
 poke-memory = { path = "../poke-memory" }
+poke-pokeapi = { path = "../poke-pokeapi" }
