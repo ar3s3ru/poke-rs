@@ -5,6 +5,7 @@ use futures::future::BoxFuture;
 use serde::Serialize;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Element {
     Normal,
     Fight,
@@ -27,6 +28,7 @@ pub enum Element {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(untagged)]
 pub enum Type {
     Single(Element),
     Double(Element, Element),
@@ -34,17 +36,18 @@ pub enum Type {
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct Stats {
-    pub speed: u8,
-    pub special_defense: u8,
-    pub special_attack: u8,
-    pub defense: u8,
-    pub attack: u8,
-    pub hit_points: u8,
+    pub speed: u16,
+    pub special_defense: u16,
+    pub special_attack: u16,
+    pub defense: u16,
+    pub attack: u16,
+    pub hit_points: u16,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Pokemon {
     pub name: String,
+    #[serde(rename = "type")]
     pub typ: Type,
     pub stats: Stats,
 }

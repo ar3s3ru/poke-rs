@@ -26,15 +26,6 @@ where
         .boxed()
 }
 
-fn with_repository<R>(
-    repository: R,
-) -> impl Filter<Extract = (R,), Error = std::convert::Infallible> + Clone
-where
-    R: pokemon::Repository + Send + Clone,
-{
-    warp::any().map(move || repository.clone())
-}
-
 async fn get_pokemon_by_id<R>(id: u32, repository: R) -> Result<warp::reply::Json, warp::Rejection>
 where
     R: pokemon::Repository + Send + Sync,
@@ -52,4 +43,13 @@ where
 
 async fn get_pokemon_by_name(_name: String) -> Result<warp::reply::Json, warp::Rejection> {
     Err(warp::reject::not_found())
+}
+
+fn with_repository<R>(
+    repository: R,
+) -> impl Filter<Extract = (R,), Error = std::convert::Infallible> + Clone
+where
+    R: pokemon::Repository + Send + Clone,
+{
+    warp::any().map(move || repository.clone())
 }
