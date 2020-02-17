@@ -20,7 +20,7 @@ impl pokemon::Repository for PokemonRepository {
                 .get_pokemon_by_id(num)
                 .await
                 .unwrap()
-                .map(Pokemon::from))
+                .map(|model| Pokemon::from(model)))
         })
     }
 }

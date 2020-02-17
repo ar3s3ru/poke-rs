@@ -46,9 +46,14 @@ pub struct Stats {
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Pokemon {
+    pub dex_id: u32,
     pub name: String,
+
     #[serde(rename = "type")]
     pub typ: Type,
+    pub height: u32,
+    pub weight: u32,
+    pub base_experience: u32,
     pub stats: Stats,
 }
 

@@ -8,19 +8,11 @@ pub struct Root {
     // pub abilities: Vec<Ability>,
     #[serde(rename = "base_experience")]
     pub base_experience: i64,
-    // pub forms: Vec<Form>,
-    // #[serde(rename = "game_indices")]
-    // pub game_indices: Vec<Index>,
     pub height: i64,
     pub id: i64,
-    // #[serde(rename = "is_default")]
-    // pub is_default: bool,
-    #[serde(rename = "location_area_encounters")]
-    pub location_area_encounters: String,
     // pub moves: Vec<Mfe>,
     pub name: String,
     pub order: i64,
-    // pub species: Species,
     pub stats: Vec<Stat>,
     pub types: Vec<Type>,
     pub weight: i64,
@@ -69,7 +61,11 @@ impl Root {
 impl From<Root> for pokemon::Pokemon {
     fn from(value: Root) -> Self {
         pokemon::Pokemon {
+            dex_id: value.id as u32,
             name: value.name,
+            height: value.height as u32,
+            weight: value.weight as u32,
+            base_experience: value.base_experience as u32,
             typ: Root::from_types(&value.types),
             stats: Root::from_stats(&value.stats),
         }
@@ -99,20 +95,19 @@ impl From<Root> for pokemon::Pokemon {
 //     pub url: String,
 // }
 
-// #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-// #[serde(rename_all = "camelCase")]
-// pub struct Index {
-//     #[serde(rename = "game_index")]
-//     pub game_index: i64,
-//     pub version: Version,
-// }
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Index {
+    #[serde(rename = "game_index")]
+    pub game_index: i64,
+    pub version: Version,
+}
 
-// #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-// #[serde(rename_all = "camelCase")]
-// pub struct Version {
-//     pub name: String,
-//     pub url: String,
-// }
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Version {
+    pub name: String,
+}
 
 // #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 // #[serde(rename_all = "camelCase")]
