@@ -1,4 +1,5 @@
 use futures::future::BoxFuture;
+use tokio::sync::mpsc;
 
 use poke_domain::{pokemon, pokemon::Pokemon};
 
@@ -7,7 +8,7 @@ use crate::InMemoryRepository;
 #[derive(Clone)]
 pub struct CacheLayer<R> {
     upstream: R,
-    tx: tokio::sync::mpsc::Sender<Pokemon>,
+    tx: mpsc::Sender<Pokemon>,
     inmemory: InMemoryRepository,
 }
 
@@ -19,7 +20,7 @@ where
         let inmemory = InMemoryRepository::default();
         let cache = inmemory.clone();
 
-        let (tx, mut rx) = tokio::sync::mpsc::channel::<Pokemon>(1);
+        let (tx, mut rx) = mpsc::channel::<Pokemon>(1);
 
         // Spawn a thread for background update
         tokio::spawn(async move {

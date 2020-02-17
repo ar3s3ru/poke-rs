@@ -13,6 +13,7 @@ pub struct InMemoryRepository {
 }
 
 impl From<Vec<Pokemon>> for InMemoryRepository {
+    #[inline]
     fn from(value: Vec<Pokemon>) -> Self {
         InMemoryRepository {
             backend: Arc::new(RwLock::new(value)),

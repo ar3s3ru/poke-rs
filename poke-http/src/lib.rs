@@ -45,6 +45,7 @@ async fn get_pokemon_by_name(_name: String) -> Result<warp::reply::Json, warp::R
     Err(warp::reject::not_found())
 }
 
+#[inline]
 fn with_repository<R>(
     repository: R,
 ) -> impl Filter<Extract = (R,), Error = std::convert::Infallible> + Clone
