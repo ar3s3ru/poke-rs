@@ -30,7 +30,10 @@ async fn get_pokemon_by_id<R>(id: u32, repository: R) -> Result<warp::reply::Jso
 where
     R: pokemon::Repository + Send + Sync,
 {
-    let result = repository.get(id).await.map_err(|_err| warp::reject())?;
+    let result = repository.get(id).await.map_err(|err| {
+        log::error!("Error received while calling repository: {}", err);
+        warp::reject()
+    })?;
 
     match result {
         None => Err(warp::reject::not_found()),

@@ -29,15 +29,10 @@ impl pokemon::Repository for InMemoryRepository {
         Self: Sync + 'a,
     {
         Box::pin(async move {
-            Ok(match num {
-                0 => None,
-                _ => {
-                    let data = self.backend.read().await;
-                    let position = data.iter().position(|pokemon| pokemon.dex_id == num);
+            let data = self.backend.read().await;
+            let position = data.iter().position(|pokemon| pokemon.dex_id == num);
 
-                    position.and_then(|idx| data.get(idx).cloned())
-                }
-            })
+            Ok(position.and_then(|idx| data.get(idx).cloned()))
         })
     }
 }
