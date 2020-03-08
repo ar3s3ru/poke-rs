@@ -1,42 +1,21 @@
 use warp::filters::BoxedFilter;
 use warp::{Filter, Reply};
 
+use eventually::command::Dispatcher;
+
 use poke_domain::pokemon;
 
-pub fn api<R, Store, Handler>(
-    repository: R,
-    event_store: Store,
-    command_handler: Handler,
-) -> BoxedFilter<(impl Reply,)>
+pub fn api<R, D>(repository: R, dispatcher: D) -> BoxedFilter<(impl Reply,)>
 where
     R: pokemon::Repository + Send + Sync + Clone + 'static,
-    Store: eventually::Store<
-            SourceId = String,
-            Event = eventually::versioned::Versioned<poke_domain::trainer::TrainerEvent>,
-        > + Send
-        + Sync
-        + Clone
-        + 'static,
-    Handler: eventually::command::Handler<
-            Command = poke_domain::trainer::TrainerCommand,
-            Aggregate = eventually::versioned::AsAggregate<
-                eventually::optional::AsAggregate<poke_domain::trainer::Trainer>,
-            >,
-            Error = poke_domain::trainer::TrainerError,
-        > + Send
-        + Sync
-        + Clone
-        + 'static,
-    <Store as EventStore>::SourceId: Clone + Eq + Send,
-    <Store as EventStore>::Offset: Default + Send,
-    <Store as EventStore>::Error: std::error::Error + Send + 'static,
-    command::AggregateOf<Handler>: AggregateExt<Event = <Store as EventStore>::Event> + Send,
-    command::CommandOf<Handler>: eventually::command::dispatcher::Identifiable<SourceId = <Store as EventStore>::SourceId>
-        + Send,
-    aggregate::EventOf<command::AggregateOf<Handler>>: Clone + Send,
-    aggregate::StateOf<command::AggregateOf<Handler>>: Default + Send,
-    aggregate::ErrorOf<command::AggregateOf<Handler>>: std::error::Error + Send + 'static,
-    command::ErrorOf<Handler>: std::error::Error + Send + 'static,
+    D: Dispatcher + Send + Sync + Clone + 'static,
+    <D as Dispatcher>::CommandHandler: eventually::command::Handler<
+        Command = poke_domain::trainer::TrainerCommand,
+        Aggregate = eventually::versioned::AsAggregate<
+            eventually::optional::AsAggregate<poke_domain::trainer::Trainer>,
+        >,
+        Error = poke_domain::trainer::TrainerError,
+    >,
 {
     let api = warp::path("pokemons");
 
@@ -53,8 +32,7 @@ where
 
     let start_adventure = api
         .and(warp::path!("adventure" / "start" / "name" / String))
-        .and(with_store(event_store))
-        .and(with_command_handler(command_handler))
+        .and(with_dispatcher(dispatcher))
         .and_then(start_adventure_trainer);
 
     warp::any()
@@ -88,37 +66,21 @@ async fn get_pokemon_by_name(_name: String) -> Result<warp::reply::Json, warp::R
 
 use eventually::{aggregate, aggregate::AggregateExt, command, Store as EventStore};
 
-async fn start_adventure_trainer<Store, Handler>(
+async fn start_adventure_trainer<D>(
     name: String,
-    event_store: Store,
-    command_handler: Handler,
+    mut dispatcher: D,
 ) -> Result<warp::reply::Json, warp::Rejection>
 where
-    Store: eventually::Store<
-            SourceId = String,
-            Event = eventually::versioned::Versioned<poke_domain::trainer::TrainerEvent>,
-        > + Send
-        + Sync,
-    Handler: eventually::command::Handler<
-            Command = poke_domain::trainer::TrainerCommand,
-            Aggregate = eventually::versioned::AsAggregate<
-                eventually::optional::AsAggregate<poke_domain::trainer::Trainer>,
-            >,
-            Error = poke_domain::trainer::TrainerError,
-        > + Send
-        + Sync,
-    <Store as EventStore>::SourceId: Clone + Eq + Send,
-    <Store as EventStore>::Offset: Default + Send,
-    <Store as EventStore>::Error: std::error::Error + Send + 'static,
-    command::AggregateOf<Handler>: AggregateExt<Event = <Store as EventStore>::Event> + Send,
-    command::CommandOf<Handler>: eventually::command::dispatcher::Identifiable<SourceId = <Store as EventStore>::SourceId>
-        + Send,
-    aggregate::EventOf<command::AggregateOf<Handler>>: Clone + Send,
-    aggregate::StateOf<command::AggregateOf<Handler>>: Default + Send,
-    aggregate::ErrorOf<command::AggregateOf<Handler>>: std::error::Error + Send + 'static,
-    command::ErrorOf<Handler>: std::error::Error + Send + 'static,
+    D: Dispatcher,
+    <D as Dispatcher>::CommandHandler: eventually::command::Handler<
+        Command = poke_domain::trainer::TrainerCommand,
+        Aggregate = eventually::versioned::AsAggregate<
+            eventually::optional::AsAggregate<poke_domain::trainer::Trainer>,
+        >,
+        Error = poke_domain::trainer::TrainerError,
+    >,
 {
-    let result = Dispatcher::new(event_store, command_handler)
+    let result = dispatcher
         .dispatch(poke_domain::trainer::TrainerCommand::StartAdventure {
             name,
             sex: poke_domain::trainer::Sex::Male,
@@ -140,35 +102,18 @@ where
     warp::any().map(move || repository.clone())
 }
 
-use eventually::command::dispatcher::Dispatcher;
-
-fn with_store<Store>(
-    store: Store,
-) -> impl Filter<Extract = (Store,), Error = std::convert::Infallible> + Clone
+fn with_dispatcher<D>(
+    dispatcher: D,
+) -> impl Filter<Extract = (D,), Error = std::convert::Infallible> + Clone
 where
-    Store: eventually::Store<
-            SourceId = String,
-            Event = eventually::versioned::Versioned<poke_domain::trainer::TrainerEvent>,
-        > + Send
-        + Sync
-        + Clone,
+    D: Dispatcher + Send + Sync + Clone,
+    <D as Dispatcher>::CommandHandler: eventually::command::Handler<
+        Command = poke_domain::trainer::TrainerCommand,
+        Aggregate = eventually::versioned::AsAggregate<
+            eventually::optional::AsAggregate<poke_domain::trainer::Trainer>,
+        >,
+        Error = poke_domain::trainer::TrainerError,
+    >,
 {
-    warp::any().map(move || store.clone())
-}
-
-fn with_command_handler<Handler>(
-    handler: Handler,
-) -> impl Filter<Extract = (Handler,), Error = std::convert::Infallible> + Clone
-where
-    Handler: eventually::command::Handler<
-            Command = poke_domain::trainer::TrainerCommand,
-            Aggregate = eventually::versioned::AsAggregate<
-                eventually::optional::AsAggregate<poke_domain::trainer::Trainer>,
-            >,
-            Error = poke_domain::trainer::TrainerError,
-        > + Send
-        + Sync
-        + Clone,
-{
-    warp::any().map(move || handler.clone())
+    warp::any().map(move || dispatcher.clone())
 }

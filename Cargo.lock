@@ -194,7 +194,7 @@ dependencies = [
 [[package]]
 name = "eventually"
 version = "0.3.0"
-source = "git+https://github.com/ar3s3ru/eventually-rs#e7ed6b064858827f9512ae747bf3c82b1f639d98"
+source = "git+https://github.com/ar3s3ru/eventually-rs#0633c1746e430590d5b53fa038bcab45f60cbe74"
 dependencies = [
  "async-trait 0.1.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "eventually-core 0.1.0 (git+https://github.com/ar3s3ru/eventually-rs)",
@@ -205,7 +205,7 @@ dependencies = [
 [[package]]
 name = "eventually-core"
 version = "0.1.0"
-source = "git+https://github.com/ar3s3ru/eventually-rs#e7ed6b064858827f9512ae747bf3c82b1f639d98"
+source = "git+https://github.com/ar3s3ru/eventually-rs#0633c1746e430590d5b53fa038bcab45f60cbe74"
 dependencies = [
  "async-trait 0.1.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -214,7 +214,7 @@ dependencies = [
 [[package]]
 name = "eventually-memory"
 version = "0.3.0"
-source = "git+https://github.com/ar3s3ru/eventually-rs#e7ed6b064858827f9512ae747bf3c82b1f639d98"
+source = "git+https://github.com/ar3s3ru/eventually-rs#0633c1746e430590d5b53fa038bcab45f60cbe74"
 dependencies = [
  "async-trait 0.1.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "eventually-core 0.1.0 (git+https://github.com/ar3s3ru/eventually-rs)",
@@ -224,7 +224,7 @@ dependencies = [
 [[package]]
 name = "eventually-util"
 version = "0.1.0"
-source = "git+https://github.com/ar3s3ru/eventually-rs#e7ed6b064858827f9512ae747bf3c82b1f639d98"
+source = "git+https://github.com/ar3s3ru/eventually-rs#0633c1746e430590d5b53fa038bcab45f60cbe74"
 dependencies = [
  "async-trait 0.1.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "eventually-core 0.1.0 (git+https://github.com/ar3s3ru/eventually-rs)",

@@ -1,6 +1,4 @@
-use std::sync::Arc;
-
-use eventually::command::dispatcher::{Dispatcher, Error};
+use eventually::command::dispatcher::DirectDispatcher;
 use eventually::optional::CommandHandler;
 use eventually::versioned::{CommandHandlerExt, Versioned};
 use eventually_memory::Store;
@@ -25,11 +23,12 @@ async fn web(port: u16) {
 
     let event_store = Store::<String, Versioned<TrainerEvent>>::default();
     let handler = TrainerCommandHandler.as_handler().versioned();
+    let dispatcher = DirectDispatcher::new(event_store, handler);
 
     let poke_api = poke_pokeapi::repository::PokemonRepository::default();
     let repository = poke_memory::cache::CacheLayer::from(poke_api);
 
-    let routes = poke_http::api(repository, event_store, handler).with(logger);
+    let routes = poke_http::api(repository, dispatcher).with(logger);
 
     warp::serve(routes).run(([0, 0, 0, 0], port)).await;
 }
