@@ -15,8 +15,9 @@ where
             Event = eventually::versioned::Versioned<poke_domain::trainer::TrainerEvent>,
         > + Send
         + Sync
-        + Clone,
-    Handler: eventually::CommandHandler<
+        + Clone
+        + 'static,
+    Handler: eventually::command::Handler<
             Command = poke_domain::trainer::TrainerCommand,
             Aggregate = eventually::versioned::AsAggregate<
                 eventually::optional::AsAggregate<poke_domain::trainer::Trainer>,
@@ -24,7 +25,18 @@ where
             Error = poke_domain::trainer::TrainerError,
         > + Send
         + Sync
-        + Clone,
+        + Clone
+        + 'static,
+    <Store as EventStore>::SourceId: Clone + Eq + Send,
+    <Store as EventStore>::Offset: Default + Send,
+    <Store as EventStore>::Error: std::error::Error + Send + 'static,
+    command::AggregateOf<Handler>: AggregateExt<Event = <Store as EventStore>::Event> + Send,
+    command::CommandOf<Handler>: eventually::command::dispatcher::Identifiable<SourceId = <Store as EventStore>::SourceId>
+        + Send,
+    aggregate::EventOf<command::AggregateOf<Handler>>: Clone + Send,
+    aggregate::StateOf<command::AggregateOf<Handler>>: Default + Send,
+    aggregate::ErrorOf<command::AggregateOf<Handler>>: std::error::Error + Send + 'static,
+    command::ErrorOf<Handler>: std::error::Error + Send + 'static,
 {
     let api = warp::path("pokemons");
 
@@ -41,11 +53,14 @@ where
 
     let start_adventure = api
         .and(warp::path!("adventure" / "start" / "name" / String))
-        .and(with_store(event_store));
+        .and(with_store(event_store))
+        .and(with_command_handler(command_handler))
+        .and_then(start_adventure_trainer);
 
     warp::any()
         .and(get_pokemon_by_id)
         .or(get_pokemon_by_name)
+        .or(start_adventure)
         .boxed()
 }
 
@@ -75,7 +90,6 @@ use eventually::{aggregate, aggregate::AggregateExt, command, Store as EventStor
 
 async fn start_adventure_trainer<Store, Handler>(
     name: String,
-    sex: poke_domain::trainer::Sex,
     event_store: Store,
     command_handler: Handler,
 ) -> Result<warp::reply::Json, warp::Rejection>
@@ -85,7 +99,7 @@ where
             Event = eventually::versioned::Versioned<poke_domain::trainer::TrainerEvent>,
         > + Send
         + Sync,
-    Handler: eventually::CommandHandler<
+    Handler: eventually::command::Handler<
             Command = poke_domain::trainer::TrainerCommand,
             Aggregate = eventually::versioned::AsAggregate<
                 eventually::optional::AsAggregate<poke_domain::trainer::Trainer>,
@@ -95,7 +109,6 @@ where
         + Sync,
     <Store as EventStore>::SourceId: Clone + Eq + Send,
     <Store as EventStore>::Offset: Default + Send,
-    <Store as EventStore>::Stream: Send,
     <Store as EventStore>::Error: std::error::Error + Send + 'static,
     command::AggregateOf<Handler>: AggregateExt<Event = <Store as EventStore>::Event> + Send,
     command::CommandOf<Handler>: eventually::command::dispatcher::Identifiable<SourceId = <Store as EventStore>::SourceId>
@@ -106,13 +119,16 @@ where
     command::ErrorOf<Handler>: std::error::Error + Send + 'static,
 {
     let result = Dispatcher::new(event_store, command_handler)
-        .dispatch(poke_domain::trainer::TrainerCommand::StartAdventure { name, sex })
+        .dispatch(poke_domain::trainer::TrainerCommand::StartAdventure {
+            name,
+            sex: poke_domain::trainer::Sex::Male,
+        })
         .await
-        .unwrap();
+        .map_err(|_err| warp::reject())?;
 
     log::debug!("Returned state: {:?}", result);
 
-    Ok(warp::reply::json(&true))
+    Ok(warp::reply::json(&(result.take())))
 }
 
 fn with_repository<R>(
@@ -144,7 +160,7 @@ fn with_command_handler<Handler>(
     handler: Handler,
 ) -> impl Filter<Extract = (Handler,), Error = std::convert::Infallible> + Clone
 where
-    Handler: eventually::CommandHandler<
+    Handler: eventually::command::Handler<
             Command = poke_domain::trainer::TrainerCommand,
             Aggregate = eventually::versioned::AsAggregate<
                 eventually::optional::AsAggregate<poke_domain::trainer::Trainer>,

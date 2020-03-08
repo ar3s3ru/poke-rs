@@ -1,7 +1,9 @@
+use std::sync::Arc;
+
 use eventually::command::dispatcher::{Dispatcher, Error};
 use eventually::optional::CommandHandler;
 use eventually::versioned::{CommandHandlerExt, Versioned};
-use eventually_memory::MemoryStore;
+use eventually_memory::Store;
 
 use structopt::StructOpt;
 use warp::Filter;
@@ -21,7 +23,7 @@ async fn main() {
 async fn web(port: u16) {
     let logger = warp::log("poke");
 
-    let event_store = MemoryStore::<String, Versioned<TrainerEvent>>::default();
+    let event_store = Store::<String, Versioned<TrainerEvent>>::default();
     let handler = TrainerCommandHandler.as_handler().versioned();
 
     let poke_api = poke_pokeapi::repository::PokemonRepository::default();

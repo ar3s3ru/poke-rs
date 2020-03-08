@@ -5,13 +5,15 @@ use async_trait::async_trait;
 use eventually::optional::{Aggregate, CommandHandler, EventOf, StateOf};
 use eventually::{command, command::dispatcher::Identifiable};
 
-#[derive(Debug, Clone, PartialEq)]
+use serde::Serialize;
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Trainer {
     name: String,
     sex: Sex,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum Sex {
     Male,
     Female,
