@@ -21,12 +21,15 @@ async fn main() {
 async fn web(port: u16) {
     let logger = warp::log("poke");
 
-    let event_store = Store::<String, Versioned<TrainerEvent>>::default();
-    let handler = TrainerCommandHandler.as_handler().versioned();
-    let dispatcher = DirectDispatcher::new(event_store, handler);
-
     let poke_api = poke_pokeapi::repository::PokemonRepository::default();
     let repository = poke_memory::cache::CacheLayer::from(poke_api);
+
+    let handler = TrainerCommandHandler::new(repository.clone())
+        .as_handler()
+        .versioned();
+
+    let event_store = Store::<String, Versioned<TrainerEvent>>::default();
+    let dispatcher = DirectDispatcher::new(event_store, handler);
 
     let routes = poke_http::api(repository, dispatcher).with(logger);
 
