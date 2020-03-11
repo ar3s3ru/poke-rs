@@ -11,4 +11,6 @@ log = "0.4"
 warp = "0.2"
 serde_json = "1.0"
 
+eventually = { git = "https://github.com/ar3s3ru/eventually-rs" }
+
 poke-domain = { path = "../poke-domain" }

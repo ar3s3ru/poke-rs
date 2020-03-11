@@ -12,6 +12,9 @@ structopt = "0.3"
 tokio = { version = "0.2", features = ["macros"] }
 warp = "0.2"
 
+eventually = { git = "https://github.com/ar3s3ru/eventually-rs" }
+eventually-memory = { git = "https://github.com/ar3s3ru/eventually-rs" }
+
 poke-cli = { path = "../poke-cli" }
 poke-domain = { path = "../poke-domain" }
 poke-http = { path = "../poke-http" }
